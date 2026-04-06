@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考试认证系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .exam-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .exam-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .submit-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .status-text {
+            margin: 20px 0;
+            font-size: 18px;
+        }
+
+        .team-info {
+            text-align: left;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .info-item {
+            margin: 8px 0;
+            font-size: 16px;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .redirect-btn {
+            padding: 12px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .redirect-btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .countdown {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .success-message {
+            color: #28a745;
+            text-align: center;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">考试认证系统</h1>
+        <div class="input-group">
+            <label class="input-label">请输入考号：</label>
+            <input type="text" id="examInput" class="exam-input" placeholder="请输入您的考号">
+        </div>
+        <button id="submitBtn" class="submit-btn">提交</button>
+    </div>
+
+    <!-- 状态查询模态框 -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>认证状态</h2>
+            <p class="status-text">正在等待管理员审核...</p>
+            <p class="status-text" id="statusDetail">下次查询: 3秒后</p>
+        </div>
+    </div>
+
+    <!-- 成功认证模态框 -->
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>认证成功</h2>
+            <p class="highlight">请抄写以下账号和密码到纸上！</p>
+            <div class="team-info" id="teamInfo">
+                <!-- 团队信息将在这里显示 -->
+            </div>
+            <button id="redirectBtn" class="redirect-btn" disabled>跳转到考试系统 (10)</button>
+            <div class="countdown" id="countdownText">按钮将在10秒后可用</div>
+        </div>
+    </div>
+
+    <!-- 拒绝认证模态框 -->
+    <div id="rejectModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>认证被拒绝</h2>
+            <p class="error-message">您的认证请求已被拒绝，请检查考号是否正确或联系管理员。</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素获取
+        const examInput = document.getElementById('examInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusModal = document.getElementById('statusModal');
+        const successModal = document.getElementById('successModal');
+        const rejectModal = document.getElementById('rejectModal');
+        const statusDetail = document.getElementById('statusDetail');
+        const teamInfo = document.getElementById('teamInfo');
+        const redirectBtn = document.getElementById('redirectBtn');
+        const countdownText = document.getElementById('countdownText');
+
+        // 关闭模态框的按钮
+        const closeButtons = document.querySelectorAll('.close');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                statusModal.style.display = 'none';
+                successModal.style.display = 'none';
+                rejectModal.style.display = 'none';
+            });
+        });
+
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(event) {
+            if (event.target === statusModal || event.target === successModal || event.target === rejectModal) {
+                statusModal.style.display = 'none';
+                successModal.style.display = 'none';
+                rejectModal.style.display = 'none';
+            }
+        });
+
+        // 提交表单事件
+        submitBtn.addEventListener('click', async function() {
+            const examNum = examInput.value.trim();
+            
+            if (!examNum) {
+                alert('请输入考号！');
+                return;
+            }
+
+            try {
+                // 发送认证请求
+                const formData = new FormData();
+                formData.append('exam_num', examNum);
+
+                const response = await fetch('/cxtool/public/auth/verify', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.code === 1) {
+                    // 检查是否立即获得认证
+                    if (result.data && result.data.token) {
+                        showSuccess(result.data);
+                    } else {
+                        startStatusPolling(examNum);
+                    }
+                } else {
+                    alert('认证请求发送失败: ' + result.msg);
+                }
+            } catch (error) {
+                console.error('请求失败:', error);
+                alert('网络请求失败，请稍后重试');
+            }
+        });
+
+        // 开始轮询状态
+        let pollingInterval;
+        function startStatusPolling(examNum) {
+            statusModal.style.display = 'block';
+            let timeLeft = 3;
+
+            updateStatusCountdown(timeLeft);
+
+            pollingInterval = setInterval(async () => {
+                timeLeft--;
+                updateStatusCountdown(timeLeft);
+
+                if (timeLeft <= 0) {
+                    try {
+                        const response = await fetch(`/cxtool/public/auth/verify?exam_num=${encodeURIComponent(examNum)}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        });
+
+                        const result = await response.json();
+
+                        if (result.code === 1) {
+                            const status = result.data;
+                            
+                            if (typeof status === 'string') {
+                                if (status === 'DONE') {
+                                    const detailResponse = await fetch(`/cxtool/public/auth/verify?exam_num=${encodeURIComponent(examNum)}`, {
+                                        method: 'GET',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                        }
+                                    });
+                                    
+                                    const detailResult = await detailResponse.json();
+                                    if (detailResult.code === 1 && detailResult.data.token) {
+                                        clearInterval(pollingInterval);
+                                        statusModal.style.display = 'none';
+                                        showSuccess(detailResult.data);
+                                    }
+                                } else if (status === 'REJECTED' || status === 'FAILED') {
+                                    clearInterval(pollingInterval);
+                                    statusModal.style.display = 'none';
+                                    showRejection();
+                                } else {
+                                    timeLeft = 3;
+                                    updateStatusCountdown(timeLeft);
+                                }
+                            } else {
+                                clearInterval(pollingInterval);
+                                statusModal.style.display = 'none';
+                                showSuccess(status);
+                            }
+                        } else {
+                            console.error('获取状态失败:', result.msg);
+                            timeLeft = 3;
+                            updateStatusCountdown(timeLeft);
+                        }
+                    } catch (error) {
+                        console.error('轮询请求失败:', error);
+                        timeLeft = 3;
+                        updateStatusCountdown(timeLeft);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateStatusCountdown(seconds) {
+            statusDetail.textContent = `下次查询: ${seconds}秒后`;
+        }
+
+        // 显示成功信息 - 已修复跳转问题
+        function showSuccess(teamData) {
+            teamInfo.innerHTML = `
+                <div class="info-item"><strong>考号:</strong> ${teamData.examNumber}</div>
+                <div class="info-item"><strong>队名:</strong> ${teamData.teamName}</div>
+                <div class="info-item"><strong>账号:</strong> ${teamData.account}</div>
+                <div class="info-item"><strong>密码:</strong> ${teamData.password}</div>
+                <div class="info-item"><strong>位置:</strong> ${teamData.position}</div>
+                <div class="info-item"><strong>登录时间:</strong> ${new Date(teamData.loginTime).toLocaleString()}</div>
+            `;
+
+            let countdown = 10;
+            redirectBtn.disabled = true;
+            redirectBtn.textContent = `跳转到考试系统 (${countdown})`;
+            countdownText.textContent = '按钮将在10秒后可用';
+
+            const countdownInterval = setInterval(() => {
+                countdown--;
+                redirectBtn.textContent = `跳转到考试系统 (${countdown})`;
+                
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    redirectBtn.disabled = false;
+                    redirectBtn.textContent = '跳转到考试系统';
+                    countdownText.textContent = '按钮现在可以点击';
+                    
+                    // 修复：防止重复绑定 + 阻止默认行为
+                    redirectBtn.onclick = null;
+                    redirectBtn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const redirectUrl = `${teamData.djUrl}?token=${encodeURIComponent(teamData.token)}`;
+                        window.location.replace(redirectUrl);
+                    };
+                }
+            }, 1000);
+
+            successModal.style.display = 'block';
+        }
+
+        // 显示拒绝信息
+        function showRejection() {
+            rejectModal.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
