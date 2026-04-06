@@ -1,18 +1,14 @@
 package top.techmczs.cuitxcpcproxy.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-import top.techmczs.cuitxcpcproxy.dto.PrintTaskDTO;
 import top.techmczs.cuitxcpcproxy.entity.Balloon;
 import top.techmczs.cuitxcpcproxy.result.Result;
 import top.techmczs.cuitxcpcproxy.services.DjBalloonService;
-
-import java.util.concurrent.Executor;
 
 @RestController
 @Slf4j
@@ -22,36 +18,15 @@ public class DjBalloonAdminController {
 
     private final DjBalloonService djBalloonService;
 
-    @Resource(name = "taskExecutor")
-    private Executor taskExecutor;
-
-//    @GetMapping(value = "/print", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-//    public SseEmitter getBalloon() {
-//        return djBalloonService.connectSse();
-//    }
-
     /**
-     * 气球SSE统一推送接口
+     * 气球SSE统一推送接口 ✅ 修复：添加charset、移除多余线程池
      */
-    @GetMapping(value = "/task", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(value = "/task", produces = MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8")
     public SseEmitter getBalloon() {
-        // 1. 创建SSE发射器（0=永不超时）
+        // 创建永不超时的Emitter
         SseEmitter emitter = new SseEmitter(0L);
-
-        // 2. 异步执行推送（核心：不阻塞主线程）
-        taskExecutor.execute(() -> djBalloonService.connectBalloonSse(emitter));
-
-        // 3. 统一生命周期回调（和授权/打印接口完全一致）
-        emitter.onCompletion(() -> log.info("气球SSE连接正常关闭"));
-        emitter.onTimeout(() -> {
-            log.info("气球SSE连接超时");
-            emitter.complete();
-        });
-        emitter.onError(ex -> {
-            log.error("气球SSE连接异常：{}", ex.getMessage());
-            emitter.completeWithError(ex);
-        });
-
+        // 交给Service管理客户端
+        djBalloonService.registerClient(emitter);
         return emitter;
     }
 
@@ -66,4 +41,3 @@ public class DjBalloonAdminController {
         return Result.success();
     }
 }
-

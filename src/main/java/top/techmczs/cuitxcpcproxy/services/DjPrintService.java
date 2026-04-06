@@ -10,7 +10,7 @@ import top.techmczs.cuitxcpcproxy.dto.PrintTeamDTO;
 @Component
 public interface DjPrintService {
     //PrintTaskDTO getAuthTopTaskFromQueue();
-    void pushPrintTaskBySse(SseEmitter emitter);
+    void registerPrintClient(SseEmitter emitter);
     void addPrintTask(MultipartFile file, PrintTeamDTO printTeamDTO);
     void setPrintTaskDone(Long taskId);
     byte[] getPdfFileByTaskId(Long taskId);

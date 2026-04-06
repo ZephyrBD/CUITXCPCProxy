@@ -14,7 +14,8 @@ public interface DjAuthService {
     DjTeamDTO verifyClientAndGetToken(String examNum, String clientId,String UserAgent);
     DjTeamDTO getApprovedTeamInfo(String examNum);
     //AuthTaskDTO getAuthTopTaskFromQueue();
-    void pushAuthTaskBySse(SseEmitter emitter);
+    //void pushAuthTaskBySse(SseEmitter emitter);
+    void registerAuthClient(SseEmitter emitter);
     QueueTask.Status getAuthStatus(String examNum);
     void acceptAuth(Long taskId);
     void denyAuth(Long taskId);

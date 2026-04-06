@@ -37,10 +37,6 @@
     .title-section {
       flex: 1;
     }
-    .config-section {
-      flex: 1;
-      text-align: right;
-    }
     .main-content {
       padding: 20px;
       max-width: 1200px;
@@ -73,7 +69,7 @@
       margin-top: 20px;
       text-align: center;
     }
-    .auto-print-content {
+    .auto-content {
       text-align: center;
       padding: 40px 20px;
     }
@@ -121,7 +117,7 @@
       color: #f56c6c;
       font-weight: bold;
     }
-    .print-status {
+    .task-status {
       margin-top: 15px;
       padding: 10px;
       border-radius: 4px;
@@ -224,10 +220,6 @@
         flex-direction: column;
         gap: 15px;
       }
-      .config-section {
-        text-align: center;
-        width: 100%;
-      }
       .controls-panel {
         position: static;
         margin-bottom: 15px;
@@ -254,10 +246,8 @@
       <div class="title-section">
         <h1 style="margin: 0; font-size: 24px;">CXTool 管理系统</h1>
         <p style="margin: 5px 0 0 0; opacity: 0.9;">竞赛管理系统控制台</p>
-        <!-- 新增：转到Domjudge按钮 -->
         <button class="domjudge-btn" @click="gotoDomjudge">转到Domjudge</button>
       </div>
-      <!-- 移除baseUrl配置区域 -->
     </div>
   </div>
 
@@ -267,16 +257,15 @@
       <el-tab-pane label="登录验证" name="auth">
         <div class="table-section">
           <div class="controls-panel">
-            <!-- 新增：登录验证刷新按钮 -->
             <el-button type="primary" @click="refreshAuthTasks" size="small">刷新列表</el-button>
             <el-button type="danger" @click="showClearAuthTaskDialog" size="small">清空登录请求</el-button>
             <el-button type="danger" @click="showClearTeamClientDialog" size="small">清空登录信息</el-button>
             <el-button
-                    :type="authPollingEnabled ? 'warning' : 'success'"
-                    @click="toggleAuthPolling"
+                    :type="authSseEnabled ? 'warning' : 'success'"
+                    @click="toggleAuthSse"
                     size="small"
             >
-              {{ authPollingEnabled ? '关闭轮询' : '开启轮询' }}
+              {{ authSseEnabled ? '关闭实时推送' : '开启实时推送' }}
             </el-button>
           </div>
 
@@ -342,7 +331,6 @@
       <el-tab-pane label="打印任务" name="print">
         <div class="table-section">
           <div class="controls-panel">
-            <!-- 新增：打印任务刷新按钮 -->
             <el-button type="primary" @click="refreshPrintTasks" size="small">刷新列表</el-button>
             <el-button type="warning" @click="startAutoPrint" size="small">开启自动打印</el-button>
             <el-button type="danger" @click="showClearPrintTaskDialog" size="small">清空打印队列</el-button>
@@ -399,10 +387,75 @@
         </div>
       </el-tab-pane>
 
+      <!-- 气球任务模块（完全适配实体+对齐打印模块） -->
+      <el-tab-pane label="气球任务" name="balloon">
+        <div class="table-section">
+          <div class="controls-panel">
+            <el-button type="primary" @click="refreshBalloonTasks" size="small">刷新列表</el-button>
+            <el-button type="warning" @click="startAutoBalloon" size="small">开启自动气球小票打印</el-button>
+          </div>
+
+          <div class="table-wrapper">
+            <el-table
+                    :data="balloonTableData"
+                    style="width: 100%"
+                    border
+                    stripe
+                    :header-cell-style="{background: '#f5f7fa', color: '#606266'}"
+            >
+              <el-table-column prop="balloonId" label="气球ID" width="100"></el-table-column>
+              <el-table-column prop="teamName" label="队伍名称" min-width="150" show-overflow-tooltip></el-table-column>
+              <el-table-column prop="teamLocation" label="队伍位置" min-width="120"></el-table-column>
+              <el-table-column prop="problem" label="题目编号" width="100"></el-table-column>
+              <el-table-column prop="colorName" label="气球颜色" width="120"></el-table-column>
+              <el-table-column prop="isFirst" label="一血" width="80">
+                <template #default="{ row }">
+                  <el-tag type="danger" size="small" v-if="row.isFirst">是</el-tag>
+                  <el-tag type="info" size="small" v-else>否</el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="time" label="创建时间" width="180">
+                <template #default="{ row }">
+                  {{ formatDateTime(row.time) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="isFinished" label="发放状态" width="120">
+                <template #default="{ row }">
+                  <el-tag :type="row.isFinished ? 'success' : 'warning'" size="small">
+                    {{ row.isFinished ? '已打印' : '待打印' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="120">
+                <template #default="{ row }">
+                  <el-button
+                          size="small"
+                          type="success"
+                          @click="handleBalloonPrint(row)"
+                          :disabled="row.isFinished"
+                  >
+                    打印小票
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+
+          <div class="pagination-section">
+            <el-pagination
+                    v-model:current-page="balloonCurrentPage"
+                    :page-size="balloonPageSize"
+                    layout="total, prev, pager, next"
+                    :total="balloonTotal"
+                    @current-change="handleBalloonPageChange"
+            ></el-pagination>
+          </div>
+        </div>
+      </el-tab-pane>
+
       <!-- 队伍信息模块 -->
       <el-tab-pane label="队伍信息" name="teams">
         <div class="table-section">
-          <!-- 已有：刷新队伍信息按钮 -->
           <div class="controls-panel">
             <el-button type="primary" @click="refreshTeams" size="small">刷新队伍信息</el-button>
           </div>
@@ -534,7 +587,7 @@
 
   <!-- 自动打印窗口 -->
   <el-dialog v-model="autoPrintWindowVisible" title="自动打印" width="600px" center>
-    <div class="auto-print-content">
+    <div class="auto-content">
       <div v-if="currentPrintTask" class="current-task-info">
         <div class="task-item">
           <span class="task-label">任务ID:</span>
@@ -556,7 +609,7 @@
               </el-tag>
             </span>
         </div>
-        <div v-if="printStatus" :class="['print-status', `status-${printStatus.type}`]">
+        <div v-if="printStatus" :class="['task-status', `status-${printStatus.type}`]">
           {{ printStatus.message }}
         </div>
       </div>
@@ -569,6 +622,51 @@
       </div>
     </div>
   </el-dialog>
+
+  <!-- 自动气球小票打印窗口 -->
+  <el-dialog v-model="autoBalloonWindowVisible" title="自动气球小票打印" width="600px" center>
+    <div class="auto-content">
+      <div v-if="currentBalloonTask" class="current-task-info">
+        <div class="task-item">
+          <span class="task-label">气球ID:</span>
+          <span class="task-value">{{ currentBalloonTask.balloonId }}</span>
+        </div>
+        <div class="task-item">
+          <span class="task-label">队伍名称:</span>
+          <span class="task-value">{{ currentBalloonTask.teamName }}</span>
+        </div>
+        <div class="task-item">
+          <span class="task-label">队伍位置:</span>
+          <span class="task-value">{{ currentBalloonTask.teamLocation }}</span>
+        </div>
+        <div class="task-item">
+          <span class="task-label">题目编号:</span>
+          <span class="task-value">{{ currentBalloonTask.problem }}</span>
+        </div>
+        <div class="task-item">
+          <span class="task-label">气球颜色:</span>
+          <span class="task-value">{{ currentBalloonTask.colorName }}</span>
+        </div>
+        <div class="task-item">
+          <span class="task-label">一血:</span>
+          <span class="task-value">
+            <el-tag type="danger" size="small" v-if="currentBalloonTask.isFirst">是</el-tag>
+            <el-tag type="info" size="small" v-else>否</el-tag>
+          </span>
+        </div>
+        <div v-if="balloonStatus" :class="['task-status', `status-${balloonStatus.type}`]">
+          {{ balloonStatus.message }}
+        </div>
+      </div>
+      <div v-else>
+        <p style="font-size: 16px; color: #999;">等待气球小票打印任务...</p>
+      </div>
+
+      <div class="action-buttons">
+        <el-button type="danger" @click="stopAutoBalloon" size="large">停止自动气球小票打印</el-button>
+      </div>
+    </div>
+  </el-dialog>
 </div>
 
 <script>
@@ -577,38 +675,49 @@
 
   createApp({
     setup() {
-      // 基础配置（移除baseUrl相关）
+      // 基础配置
       const activeTab = ref('auth');
+      const BASE_URL = '/cxtool';
 
-      // 登录模块
+      // ==================== SSE 连接对象（默认全为null，无连接） ====================
+      let authSse = null;    // 登录验证SSE
+      let printSse = null;   // 打印任务SSE
+      let balloonSse = null; // 气球任务SSE
+      const authSseEnabled = ref(false); // 默认关闭
+
+      // ==================== 登录验证模块 ====================
       const authTableData = ref([]);
       const authCurrentPage = ref(1);
       const authPageSize = ref(10);
       const authTotal = ref(0);
-      const authPollingEnabled = ref(true); // 控制轮询状态
-      let authTaskPollingInterval = null;
       const authTaskDialogVisible = ref(false);
       const currentAuthTask = ref({});
 
-      // 打印模块
+      // ==================== 打印任务模块 ====================
       const printTableData = ref([]);
       const printCurrentPage = ref(1);
       const printPageSize = ref(10);
       const printTotal = ref(0);
+      const autoPrintWindowVisible = ref(false);
+      const currentPrintTask = ref(null);
+      const printStatus = ref(null);
 
-      // 队伍信息模块
+      // ==================== 气球任务模块 ====================
+      const balloonTableData = ref([]);
+      const balloonCurrentPage = ref(1);
+      const balloonPageSize = ref(10);
+      const balloonTotal = ref(0);
+      const autoBalloonWindowVisible = ref(false);
+      const currentBalloonTask = ref(null);
+      const balloonStatus = ref(null);
+
+      // ==================== 队伍信息模块 ====================
       const teamsTableData = ref([]);
       const teamsCurrentPage = ref(1);
       const teamsPageSize = ref(10);
       const teamsTotal = ref(0);
 
-      // 自动打印核心
-      let autoPrintPollingInterval = null;
-      const autoPrintWindowVisible = ref(false);
-      const currentPrintTask = ref(null);
-      const printStatus = ref(null);
-
-      // 清空操作定时器
+      // ==================== 定时器/文件上传 ====================
       const clearAuthTaskDialogVisible = ref(false);
       const clearAuthTaskCountdown = ref(0);
       let clearAuthTaskCountdownTimer = null;
@@ -619,446 +728,505 @@
       const clearPrintTaskCountdown = ref(0);
       let clearPrintTaskCountdownTimer = null;
 
-      // 队伍信息上传确认
       const uploadConfirmDialogVisible = ref(false);
       const uploadConfirmCountdown = ref(0);
       let uploadConfirmCountdownTimer = null;
       const uploadProgressPercentage = ref(0);
       const selectedFile = ref(null);
       const selectedFileName = ref('');
-
-      // 文件上传
       const fileInputRef = ref(null);
 
-      // 工具函数
+      // ==================== 工具函数 ====================
       const getStatusTagType = (status) => {
-        switch(status) { case 'PENDING': return 'info'; case 'ACCEPTED': case 'DONE': return 'success'; case 'DENY': return 'danger'; default: return 'info'; }
+        switch(status) {
+          case 'PENDING': return 'info';
+          case 'ACCEPTED': case 'DONE': return 'success';
+          case 'DENY': return 'danger';
+          default: return 'info';
+        }
       };
       const getStatusText = (status) => {
-        switch(status) { case 'PENDING': return '待处理'; case 'ACCEPTED': return '已通过'; case 'DENY': return '已拒绝'; case 'DONE': return '已完成'; default: return status; }
+        switch(status) {
+          case 'PENDING': return '待处理';
+          case 'ACCEPTED': return '已通过';
+          case 'DENY': return '已拒绝';
+          case 'DONE': return '已完成';
+          default: return status;
+        }
       };
       const formatDateTime = (dateString) => {
         if (!dateString) return '';
         return new Date(dateString).toLocaleString('zh-CN');
       };
 
-      // API请求（改为相对路径，适配SpringBoot同域）
+      // ==================== 气球小票TXT生成+打印函数（核心） ====================
+      // ==================== 气球小票TXT生成(全英文) + 无新窗口打印 ====================
+      const generateBalloonTxt = (task) => {
+        return `
+============== BALLOON TICKET ==============
+BalloonID : ${task.balloonId}
+TeamName  : ${task.teamName}
+Location  : ${task.teamLocation}
+Problem   : ${task.problem}
+Color     : ${task.colorName}
+1st Solve : ${task.isFirst ? "YES" : "NO"}
+Time      : ${formatDateTime(task.time)}
+==========POWERED BY CUIT XCPC TOOL=========
+            `;
+      };
+
+// 直接唤起Chrome打印弹窗，不新开标签/窗口
+      const printBalloonTxt = (task) => {
+        const content = generateBalloonTxt(task);
+
+        // 1. 创建隐藏iframe承载打印内容
+        const iframe = document.createElement("iframe");
+        iframe.style.position = "fixed";
+        iframe.style.left = "-9999px";
+        iframe.style.top = "-9999px";
+        iframe.style.width = "1px";
+        iframe.style.height = "1px";
+        document.body.appendChild(iframe);
+
+        // 2. 写入纯文本打印内容
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        doc.open();
+        doc.write(`
+            <html>
+              <head>
+                <meta charset="UTF-8">
+                <title>Balloon Ticket</title>
+                <style>
+                  body { font-family: monospace; font-size: 14px; white-space: pre-wrap; }
+                </style>
+              </head>
+              <body>${content}</body>
+            </html>
+          `);
+        doc.close();
+
+        // 3. 直接唤起打印，无任何多余窗口
+        iframe.onload = function () {
+          setTimeout(() => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+          }, 200);
+        };
+      };
+
+      // ==================== API 请求封装 ====================
       const apiGet = async (url) => {
-        try { return await axios.get(url); }
+        try { return await axios.get(BASE_URL + url); }
         catch (error) { ElMessage.error('请求失败'); throw error; }
       };
       const apiPost = async (url, data = null, config = {}) => {
         try {
-          if(data) {
-            return await axios.post(url, data, config);
-          } else {
-            return await axios.post(url);
-          }
-        }
-        catch (error) { ElMessage.error('请求失败'); throw error; }
+          return data ? await axios.post(BASE_URL + url, data, config) : await axios.post(BASE_URL + url);
+        } catch (error) { ElMessage.error('请求失败'); throw error; }
       };
       const apiDelete = async (url) => {
-        try { return await axios.delete(url); }
+        try { return await axios.delete(BASE_URL + url); }
         catch (error) { ElMessage.error('请求失败'); throw error; }
       };
       const apiGetBlob = async (url) => {
-        try { return await axios({ method: 'GET', url, responseType: 'blob' }); }
+        try { return await axios({ method: 'GET', url: BASE_URL + url, responseType: 'blob' }); }
         catch (error) { ElMessage.error('请求失败'); throw error; }
       };
 
-      // 数据获取
+      // ==================== 数据获取 ====================
       const fetchAuthTasks = async () => {
-        const res = await apiGet(`/cxtool/admin/auth/task/page?cur_page=${authCurrentPage.value}&page_size=${authPageSize.value}`);
+        const res = await apiGet(`/admin/auth/task/page?cur_page=${authCurrentPage.value}`);
         if(res.data.code ===1) { authTableData.value = res.data.data.records; authTotal.value = res.data.data.total; }
       };
       const fetchPrintTasks = async () => {
-        const res = await apiGet(`/cxtool/admin/print/task/page?cur_page=${printCurrentPage.value}&page_size=${printPageSize.value}`);
+        const res = await apiGet(`/admin/print/task/page?cur_page=${printCurrentPage.value}`);
         if(res.data.code ===1) { printTableData.value = res.data.data.records; printTotal.value = res.data.data.total; }
       };
+      const fetchBalloonTasks = async () => {
+        const res = await apiGet(`/admin/balloon/task/page?cur_page=${balloonCurrentPage.value}`);
+        if(res.data.code ===1) { balloonTableData.value = res.data.data.records; balloonTotal.value = res.data.data.total; }
+      };
       const fetchTeams = async () => {
-        const res = await apiGet(`/cxtool/admin/team/page?cur_page=${teamsCurrentPage.value}`);
+        const res = await apiGet(`/admin/team/page?cur_page=${teamsCurrentPage.value}`);
         if(res.data.code ===1) {
-          teamsTableData.value = res.data.data.records.map(team => ({
-            ...team,
-            school: team.School // 修复字段名
-          }));
+          teamsTableData.value = res.data.data.records.map(team => ({...team, school: team.School}));
           teamsTotal.value = res.data.data.total;
         }
       };
-      const pollAuthTask = async () => {
-        if (!authPollingEnabled.value) return; // 检查轮询是否启用
-        const res = await apiGet('/cxtool/admin/auth/task');
-        if(res.data.code ===1 && res.data.data?.taskId) { currentAuthTask.value = res.data.data; authTaskDialogVisible.value = true; }
-      };
 
-      // 登录验证列表刷新
-      const refreshAuthTasks = async () => {
-        const loading = ElLoading.service({
-          lock: true,
-          text: '正在刷新登录验证列表...',
-          target: '.tab-container'
-        });
-        try {
-          await fetchAuthTasks();
-          ElMessage.success('登录验证列表刷新成功');
-        } catch (error) {
-          console.error('刷新登录验证列表失败:', error);
-          ElMessage.error('登录验证列表刷新失败');
-        } finally {
-          loading.close();
-        }
-      };
+// ==================== SSE 连接管理 ====================
+      const connectAuthSse = () => {
+        if(authSse) authSse.close();
+        authSse = new EventSource(BASE_URL + '/admin/auth/task');
 
-      // 打印任务列表刷新
-      const refreshPrintTasks = async () => {
-        const loading = ElLoading.service({
-          lock: true,
-          text: '正在刷新打印任务列表...',
-          target: '.tab-container'
+        authSse.addEventListener('connect', (e) => {
+          console.log("SSE连接成功");
         });
-        try {
-          await fetchPrintTasks();
-          ElMessage.success('打印任务列表刷新成功');
-        } catch (error) {
-          console.error('刷新打印任务列表失败:', error);
-          ElMessage.error('打印任务列表刷新失败');
-        } finally {
-          loading.close();
-        }
-      };
-
-      // 队伍信息刷新方法
-      const refreshTeams = async () => {
-        const loading = ElLoading.service({
-          lock: true,
-          text: '正在刷新队伍信息...',
-          target: '.tab-container'
-        });
-        try {
-          await fetchTeams();
-          ElMessage.success('队伍信息刷新成功');
-        } catch (error) {
-          console.error('刷新队伍信息失败:', error);
-          ElMessage.error('队伍信息刷新失败');
-        } finally {
-          loading.close();
-        }
-      };
-
-      // 转到Domjudge方法
-      const gotoDomjudge = async () => {
-        const loading = ElLoading.service({
-          lock: true,
-          text: '正在获取Domjudge访问信息...',
-          target: '.header-section'
-        });
-        try {
-          const res = await apiGet('/cxtool/admin/auth/domjudge');
-          if (res.data.code === 1) {
-            const { url, token } = res.data.data;
-            if (url && token) {
-              // 打开新窗口
-              window.open(`${url}?token=${token}`, '_blank');
-            } else {
-              ElMessage.error('获取的Domjudge信息不完整');
+        authSse.addEventListener('heartbeat', (e) => {});
+        authSse.addEventListener('authTask', (e) => {
+          try {
+            const res = JSON.parse(e.data);
+            const task = res.data?.[0];
+            if (task && task.taskId) {
+              currentAuthTask.value = task;
+              authTaskDialogVisible.value = true;
+              fetchAuthTasks();
             }
-          } else {
-            ElMessage.error(res.data.msg || '获取Domjudge信息失败');
-          }
-        } catch (error) {
-          console.error('转到Domjudge失败:', error);
-          ElMessage.error('获取Domjudge信息失败，请重试');
-        } finally {
-          loading.close();
+          } catch (err) {}
+        });
+
+        authSse.onerror = () => {
+          authSse.close();
+          setTimeout(connectAuthSse, 3000);
+        };
+        ElMessage.success('登录实时推送已开启');
+      };
+
+      const toggleAuthSse = () => {
+        authSseEnabled.value = !authSseEnabled.value;
+        if (authSseEnabled.value) {
+          connectAuthSse();
+        } else {
+          authSse?.close();
+          authSse = null;
+          ElMessage.success('登录实时推送已关闭');
         }
       };
 
-      // 自动打印逻辑
-      const pollPrintTask = async () => {
-        try {
-          const res = await apiGet('/cxtool/admin/print/task');
-          if (res.data.code === 1 && res.data.data?.taskId) {
-            currentPrintTask.value = res.data.data;
-            printStatus.value = { type: 'loading', message: '正在获取打印文件...' };
+      const connectPrintSse = () => {
+        if(printSse) printSse.close();
+        printSse = new EventSource(BASE_URL + '/admin/print/task');
 
-            // 1. 标记任务完成
-            await apiPost(`/cxtool/admin/print/task/done?task_id=${currentPrintTask.value.taskId}`);
+        printSse.addEventListener('connect', (e) => {
+          console.log("打印SSE连接成功");
+          ElMessage.success('打印SSE连接成功');
+        });
 
-            // 2. 下载PDF
-            const pdfRes = await apiGetBlob(`/cxtool/admin/print/task/${currentPrintTask.value.taskId}/download`);
+        printSse.addEventListener('heartbeat', (e) => {});
 
-            // 3. 隐藏iframe打印
+        printSse.addEventListener('printTask', async (e) => {
+          try {
+            const res = JSON.parse(e.data);
+            const taskList = res.data;
+            if (!taskList || taskList.length === 0) return;
+
+            const task = taskList[0];
+            if (!task?.taskId) return;
+
+            currentPrintTask.value = task;
+            printStatus.value = { type: 'loading', message: '正在处理打印任务...' };
+
+            await apiPost(`/admin/print/task/done?task_id=${task.taskId}`);
+            const pdfRes = await apiGetBlob(`/admin/print/task/${task.taskId}/download`);
             printByIframe(pdfRes.data);
 
-            printStatus.value = { type: 'success', message: '打印指令已发送' };
+            printStatus.value = { type: 'success', message: '自动打印完成' };
+            fetchPrintTasks();
 
-            // 3秒后清空任务
-            setTimeout(() => { currentPrintTask.value = null; printStatus.value = null; }, 3000);
+            setTimeout(() => {
+              currentPrintTask.value = null;
+              printStatus.value = null;
+            }, 3000);
+
+          } catch (error) {
+            printStatus.value = { type: 'error', message: '打印失败' };
+            console.error("打印任务处理失败：", error);
           }
-        } catch (error) {
-          printStatus.value = { type: 'error', message: '打印失败' };
-          setTimeout(() => { currentPrintTask.value = null; printStatus.value = null; }, 3000);
-        }
-      };
+        });
 
-      // 隐藏iframe打印
-      const printByIframe = (blobData) => {
-        const blob = new Blob([blobData], { type: 'application/pdf' });
-        const url = URL.createObjectURL(blob);
-
-        // 创建隐藏iframe
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-
-        iframe.onload = () => {
-          setTimeout(() => {
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-            // 清理资源
-            setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(url); }, 1000);
-          }, 500);
+        printSse.onerror = () => {
+          printSse.close();
+          setTimeout(connectPrintSse, 3000);
         };
-        document.body.appendChild(iframe);
       };
 
-      // 分页/操作
-      const handleAuthPageChange = (p) => { authCurrentPage.value = p; fetchAuthTasks(); };
-      const handlePrintPageChange = (p) => { printCurrentPage.value = p; fetchPrintTasks(); };
-      const handleTeamsPageChange = (p) => { teamsCurrentPage.value = p; fetchTeams(); };
-      const handleAcceptAuth = async (id) => { await apiPost(`/cxtool/admin/auth/task/accept?task_id=${id}`); fetchAuthTasks(); authTaskDialogVisible.value = false; ElMessage.success('已同意'); };
-      const handleDenyAuth = async (id) => { await apiPost(`/cxtool/admin/auth/task/deny?task_id=${id}`); fetchAuthTasks(); authTaskDialogVisible.value = false; ElMessage.success('已拒绝'); };
+      // 气球SSE（自动打印小票）
+      const connectBalloonSse = () => {
+        if(balloonSse) balloonSse.close();
+        balloonSse = new EventSource(BASE_URL + '/admin/balloon/task');
 
-      // 下载/手动打印
-      const handleDownloadPdf = async (id) => {
-        const res = await apiGetBlob(`/cxtool/admin/print/task/${id}/download`);
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob([res.data]));
-        a.download = `task_${id}.pdf`;
-        a.click(); URL.revokeObjectURL(a.href);
-      };
-      const handleManualPrint = async (row) => {
-        const loading = ElLoading.service({ lock: true, text: '打印中...' });
-        try {
-          await apiPost(`/cxtool/admin/print/task/done?task_id=${row.taskId}`);
-          const res = await apiGetBlob(`/cxtool/admin/print/task/${row.taskId}/download`);
-          printByIframe(res.data);
-          fetchPrintTasks();
-          ElMessage.success('打印成功');
-        } finally { loading.close(); }
-      };
+        balloonSse.addEventListener('connect', (e) => {
+          console.log("气球SSE连接成功");
+          ElMessage.success('气球SSE连接成功');
+        });
 
-      // 轮询控制
-      const toggleAuthPolling = () => {
-        authPollingEnabled.value = !authPollingEnabled.value;
-        if (authPollingEnabled.value) {
-          // 开启轮询
-          authTaskPollingInterval = setInterval(pollAuthTask, 3000);
-          ElMessage.success('登录验证轮询已开启');
-        } else {
-          // 关闭轮询
-          clearInterval(authTaskPollingInterval);
-          ElMessage.success('登录验证轮询已关闭');
-        }
-      };
+        balloonSse.addEventListener('heartbeat', (e) => {});
 
-      // 自动打印控制
+        balloonSse.addEventListener('balloon', async (e) => {
+          try {
+            const res = JSON.parse(e.data);
+            const task = res.data;
+            if (!task?.balloonId) return;
+
+            currentBalloonTask.value = task;
+            balloonStatus.value = { type: 'loading', message: '正在自动打印气球小票...' };
+
+            // 核心：自动打印TXT小票
+            printBalloonTxt(task);
+            // 打印完成后标记为已发放
+            await apiPost(`/admin/balloon/task/${task.balloonId}/done`);
+
+            balloonStatus.value = { type: 'success', message: '气球小票自动打印完成' };
+            fetchBalloonTasks();
+
+            setTimeout(() => {
+              currentBalloonTask.value = null;
+              balloonStatus.value = null;
+            }, 3000);
+
+          } catch (error) {
+            balloonStatus.value = { type: 'error', message: '小票打印失败' };
+            console.error("气球任务处理失败：", error);
+          }
+        });
+
+        balloonSse.onerror = () => {
+          balloonSse.close();
+          setTimeout(connectBalloonSse, 3000);
+        };
+      };
+      // ==================== 自动控制 ====================
       const startAutoPrint = () => {
         autoPrintWindowVisible.value = true;
-        if (!autoPrintPollingInterval) {
-          autoPrintPollingInterval = setInterval(pollPrintTask, 3000);
-          ElMessage.success('自动打印已开启');
-        }
+        connectPrintSse();
+        ElMessage.success('自动打印已开启');
       };
       const stopAutoPrint = () => {
-        clearInterval(autoPrintPollingInterval);
-        autoPrintPollingInterval = null;
+        printSse?.close();
+        printSse = null;
         autoPrintWindowVisible.value = false;
         currentPrintTask.value = null;
         printStatus.value = null;
         ElMessage.success('自动打印已停止');
       };
 
-      // 队伍信息上传确认流程
-      const triggerFileSelect = () => {
-        if(fileInputRef.value) {
-          fileInputRef.value.click();
-        }
+      const startAutoBalloon = () => {
+        autoBalloonWindowVisible.value = true;
+        connectBalloonSse();
+        ElMessage.success('自动气球小票打印已开启');
       };
-      const handleFileChange = async (event) => {
-        const file = event.target.files[0];
-        if(file) {
-          if(file.name.endsWith('.xlsx')) {
-            selectedFile.value = file;
-            selectedFileName.value = file.name;
-            // 显示确认对话框
-            showUploadConfirmDialog();
-          } else {
-            ElMessage.error('请选择.xlsx格式的Excel文件');
-            event.target.value = ''; // 清空文件选择
-          }
+      const stopAutoBalloon = () => {
+        balloonSse?.close();
+        balloonSse = null;
+        autoBalloonWindowVisible.value = false;
+        currentBalloonTask.value = null;
+        balloonStatus.value = null;
+        ElMessage.success('自动气球小票打印已停止');
+      };
+
+      // 打印工具函数
+      const printByIframe = (blobData) => {
+        const blob = new Blob([blobData], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        iframe.onload = () => {
+          setTimeout(() => {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+            setTimeout(() => { document.body.removeChild(iframe); URL.revokeObjectURL(url); }, 1000);
+          }, 500);
+        };
+        document.body.appendChild(iframe);
+      };
+
+      // ==================== 分页/操作 ====================
+      const handleAuthPageChange = (p) => { authCurrentPage.value = p; fetchAuthTasks(); };
+      const handlePrintPageChange = (p) => { printCurrentPage.value = p; fetchPrintTasks(); };
+      const handleBalloonPageChange = (p) => { balloonCurrentPage.value = p; fetchBalloonTasks(); };
+      const handleTeamsPageChange = (p) => { teamsCurrentPage.value = p; fetchTeams(); };
+
+      // 登录操作
+      const handleAcceptAuth = async (id) => {
+        await apiPost(`/admin/auth/task/accept?task_id=${id}`);
+        fetchAuthTasks();
+        authTaskDialogVisible.value = false;
+        ElMessage.success('已同意');
+      };
+      const handleDenyAuth = async (id) => {
+        await apiPost(`/admin/auth/task/deny?task_id=${id}`);
+        fetchAuthTasks();
+        authTaskDialogVisible.value = false;
+        ElMessage.success('已拒绝');
+      };
+
+      // 打印操作
+      const handleDownloadPdf = async (id) => {
+        const res = await apiGetBlob(`/admin/print/task/${id}/download`);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([res.data]));
+        a.download = `task_${id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      };
+      const handleManualPrint = async (row) => {
+        const loading = ElLoading.service({ lock: true, text: '打印中...' });
+        try {
+          await apiPost(`/admin/print/task/done?task_id=${row.taskId}`);
+          const res = await apiGetBlob(`/admin/print/task/${row.taskId}/download`);
+          printByIframe(res.data);
+          fetchPrintTasks();
+          ElMessage.success('打印成功');
+        } finally { loading.close(); }
+      };
+
+      // 气球手动打印小票（核心修改）
+      const handleBalloonPrint = async (row) => {
+        const loading = ElLoading.service({ lock: true, text: '小票打印中...' });
+        try {
+          // 打印TXT小票
+          printBalloonTxt(row);
+          // 标记为已打印
+          await apiPost(`/admin/balloon/task/${row.balloonId}/done`);
+          fetchBalloonTasks();
+          ElMessage.success('气球小票打印成功');
+        } catch (e) {
+          ElMessage.error('打印失败');
+        } finally {
+          loading.close();
         }
       };
 
+      // ==================== 刷新方法 ====================
+      const refreshAuthTasks = async () => {
+        const loading = ElLoading.service({lock: true,text: '刷新中...',target: '.tab-container'});
+        try { await fetchAuthTasks(); ElMessage.success('刷新成功'); }
+        catch { ElMessage.error('刷新失败'); } finally { loading.close(); }
+      };
+      const refreshPrintTasks = async () => {
+        const loading = ElLoading.service({lock: true,text: '刷新中...',target: '.tab-container'});
+        try { await fetchPrintTasks(); ElMessage.success('刷新成功'); }
+        catch { ElMessage.error('刷新失败'); } finally { loading.close(); }
+      };
+      const refreshBalloonTasks = async () => {
+        const loading = ElLoading.service({lock: true,text: '刷新中...',target: '.tab-container'});
+        try { await fetchBalloonTasks(); ElMessage.success('刷新成功'); }
+        catch { ElMessage.error('刷新失败'); } finally { loading.close(); }
+      };
+      const refreshTeams = async () => {
+        const loading = ElLoading.service({lock: true,text: '刷新中...',target: '.tab-container'});
+        try { await fetchTeams(); ElMessage.success('刷新成功'); }
+        catch { ElMessage.error('刷新失败'); } finally { loading.close(); }
+      };
+
+      // 跳转Domjudge
+      const gotoDomjudge = async () => {
+        const loading = ElLoading.service({lock: true,text: '获取信息中...',target: '.header-section'});
+        try {
+          const res = await apiGet('/admin/auth/domjudge');
+          if (res.data.code === 1) window.open(`${res.data.data.url}?token=${res.data.data.token}`, '_blank');
+        } catch { ElMessage.error('获取失败'); } finally { loading.close(); }
+      };
+
+      // ==================== 队伍上传 ====================
+      const triggerFileSelect = () => fileInputRef.value?.click();
+      const handleFileChange = (event) => {
+        const file = event.target.files[0];
+        if(file && file.name.endsWith('.xlsx')) {
+          selectedFile.value = file;
+          selectedFileName.value = file.name;
+          showUploadConfirmDialog();
+        } else ElMessage.error('请选择xlsx文件');
+      };
       const showUploadConfirmDialog = () => {
         uploadConfirmDialogVisible.value = true;
         uploadConfirmCountdown.value = 10;
         uploadProgressPercentage.value = 0;
-
-        // 开始倒计时
         uploadConfirmCountdownTimer = setInterval(() => {
           uploadConfirmCountdown.value--;
-          uploadProgressPercentage.value = 100 - (uploadConfirmCountdown.value * 10);
-
-          if(uploadConfirmCountdown.value <= 0) {
-            clearInterval(uploadConfirmCountdownTimer);
-            confirmUpload();
-          }
-        }, 1000);
+          uploadProgressPercentage.value = 100 - uploadConfirmCountdown.value *10;
+          if(uploadConfirmCountdown.value <=0) confirmUpload();
+        },1000);
       };
-
       const cancelUpload = () => {
         clearInterval(uploadConfirmCountdownTimer);
         uploadConfirmDialogVisible.value = false;
-        uploadConfirmCountdown.value = 0;
-        uploadProgressPercentage.value = 0;
         selectedFile.value = null;
-        selectedFileName.value = '';
-        if(fileInputRef.value) fileInputRef.value.value = ''; // 清空文件选择
+        fileInputRef.value.value = '';
       };
-
       const confirmUpload = async () => {
-        if(!selectedFile.value) {
-          ElMessage.error('没有选择文件');
-          return;
-        }
-
         clearInterval(uploadConfirmCountdownTimer);
         uploadConfirmDialogVisible.value = false;
-
         const formData = new FormData();
         formData.append('file', selectedFile.value);
-
         try {
-          const res = await apiPost('/cxtool/admin/team', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-          });
-          if(res.data.code === 1) {
-            ElMessage.success(res.data.data || '队伍信息导入成功');
-            fetchTeams(); // 刷新队伍列表
-          } else {
-            ElMessage.error(res.data.msg || '导入失败');
-          }
-        } catch (error) {
-          console.error('上传失败:', error);
-          ElMessage.error('上传失败');
-        }
-
-        // 重置状态
-        uploadConfirmCountdown.value = 0;
-        uploadProgressPercentage.value = 0;
-        selectedFile.value = null;
-        selectedFileName.value = '';
-        if(fileInputRef.value) fileInputRef.value.value = ''; // 清空文件选择
+          const res = await apiPost('/admin/team', formData, {headers:{'Content-Type':'multipart/form-data'}});
+          res.data.code ===1 ? ElMessage.success('导入成功') : ElMessage.error('导入失败');
+          fetchTeams();
+        } catch { ElMessage.error('上传失败'); }
       };
 
-      // 清空操作逻辑
+      // ==================== 危险操作 ====================
       const startCountdown = (type) => {
-        let countdown, timer;
-        if(type==='authTask') {countdown=clearAuthTaskCountdown; timer=clearAuthTaskCountdownTimer;}
-        else if(type==='teamClient') {countdown=clearTeamClientCountdown; timer=clearTeamClientCountdownTimer;}
-        else {countdown=clearPrintTaskCountdown; timer=clearPrintTaskCountdownTimer;}
-        countdown.value =10;
-        timer = setInterval(()=>{countdown.value--; if(countdown.value<=0) clearInterval(timer);},1000);
+        if(type==='authTask') {
+          clearAuthTaskCountdown.value =10;
+          clearAuthTaskCountdownTimer = setInterval(()=>{
+            clearAuthTaskCountdown.value--; if(clearAuthTaskCountdown.value<=0) clearInterval(clearAuthTaskCountdownTimer);
+          },1000);
+        } else if(type==='teamClient') {
+          clearTeamClientCountdown.value =10;
+          clearTeamClientCountdownTimer = setInterval(()=>{
+            clearTeamClientCountdown.value--; if(clearTeamClientCountdown.value<=0) clearInterval(clearTeamClientCountdownTimer);
+          },1000);
+        } else {
+          clearPrintTaskCountdown.value =10;
+          clearPrintTaskCountdownTimer = setInterval(()=>{
+            clearPrintTaskCountdown.value--; if(clearPrintTaskCountdown.value<=0) clearInterval(clearPrintTaskCountdownTimer);
+          },1000);
+        }
       };
       const showClearAuthTaskDialog = () => { clearAuthTaskDialogVisible.value=true; startCountdown('authTask'); };
       const showClearTeamClientDialog = () => { clearTeamClientDialogVisible.value=true; startCountdown('teamClient'); };
       const showClearPrintTaskDialog = () => { clearPrintTaskDialogVisible.value=true; startCountdown('printTask'); };
+      const cancelClearAuthTask = () => { clearAuthTaskDialogVisible.value=false; clearInterval(clearAuthTaskCountdownTimer); clearAuthTaskCountdown.value=0; };
+      const confirmClearAuthTask = async () => { await apiDelete('/admin/auth/task/all'); fetchAuthTasks(); cancelClearAuthTask(); ElMessage.success('清空成功'); };
+      const cancelClearTeamClient = () => { clearTeamClientDialogVisible.value=false; clearInterval(clearTeamClientCountdownTimer); clearTeamClientCountdown.value=0; };
+      const confirmClearTeamClient = async () => { await apiDelete('/admin/auth/teamclient/all'); cancelClearTeamClient(); ElMessage.success('清空成功'); };
+      const cancelClearPrintTask = () => { clearPrintTaskDialogVisible.value=false; clearInterval(clearPrintTaskCountdownTimer); clearPrintTaskCountdown.value=0; };
+      const confirmClearPrintTask = async () => { await apiDelete('/admin/print/task/all'); fetchPrintTasks(); cancelClearPrintTask(); ElMessage.success('清空成功'); };
 
-      const cancelClearAuthTask = () => {
-        clearAuthTaskDialogVisible.value=false;
-        clearInterval(clearAuthTaskCountdownTimer);
-        clearAuthTaskCountdownTimer = null;
-        clearAuthTaskCountdown.value=0;
-      };
-      const confirmClearAuthTask = async () => {
-        await apiDelete('/cxtool/admin/auth/task/all');
-        fetchAuthTasks();
-        cancelClearAuthTask();
-        ElMessage.success('已清空');
-      };
-      const cancelClearTeamClient = () => {
-        clearTeamClientDialogVisible.value=false;
-        clearInterval(clearTeamClientCountdownTimer);
-        clearTeamClientCountdownTimer = null;
-        clearTeamClientCountdown.value=0;
-      };
-      const confirmClearTeamClient = async () => {
-        await apiDelete('/cxtool/admin/auth/teamclient/all');
-        cancelClearTeamClient();
-        ElMessage.success('已清空');
-      };
-      const cancelClearPrintTask = () => {
-        clearPrintTaskDialogVisible.value=false;
-        clearInterval(clearPrintTaskCountdownTimer);
-        clearPrintTaskCountdownTimer = null;
-        clearPrintTaskCountdown.value=0;
-      };
-      const confirmClearPrintTask = async () => {
-        await apiDelete('/cxtool/admin/print/task/all');
-        fetchPrintTasks();
-        cancelClearPrintTask();
-        ElMessage.success('已清空');
-      };
-
-      // 生命周期
+      // ==================== 生命周期 ====================
       onMounted(() => {
-        // 初始化加载数据
         fetchAuthTasks();
         fetchPrintTasks();
+        fetchBalloonTasks();
         fetchTeams();
-        // 移除20秒自动轮询
-        // setInterval(fetchAuthTasks, 20000);
-        // setInterval(fetchPrintTasks, 20000);
-        // 登录请求的轮询保留（用于弹窗提醒）
-        authTaskPollingInterval = setInterval(pollAuthTask, 3000);
       });
+
       onUnmounted(() => {
-        clearInterval(authTaskPollingInterval);
-        clearInterval(autoPrintPollingInterval);
-        if(clearAuthTaskCountdownTimer) clearInterval(clearAuthTaskCountdownTimer);
-        if(clearTeamClientCountdownTimer) clearInterval(clearTeamClientCountdownTimer);
-        if(clearPrintTaskCountdownTimer) clearInterval(clearPrintTaskCountdownTimer);
-        if(uploadConfirmCountdownTimer) clearInterval(uploadConfirmCountdownTimer);
+        authSse?.close();
+        printSse?.close();
+        balloonSse?.close();
+        clearInterval(clearAuthTaskCountdownTimer);
+        clearInterval(clearTeamClientCountdownTimer);
+        clearInterval(clearPrintTaskCountdownTimer);
+        clearInterval(uploadConfirmCountdownTimer);
       });
 
       return {
         activeTab,
-        authTableData, authCurrentPage, authPageSize, authTotal,
-        printTableData, printCurrentPage, printPageSize, printTotal,
+        // 登录
+        authTableData, authCurrentPage, authPageSize, authTotal, authTaskDialogVisible, currentAuthTask, authSseEnabled,
+        // 打印
+        printTableData, printCurrentPage, printPageSize, printTotal, autoPrintWindowVisible, currentPrintTask, printStatus,
+        // 气球
+        balloonTableData, balloonCurrentPage, balloonPageSize, balloonTotal, autoBalloonWindowVisible, currentBalloonTask, balloonStatus,
+        // 队伍
         teamsTableData, teamsCurrentPage, teamsPageSize, teamsTotal,
-        authTaskDialogVisible, currentAuthTask,
-        clearAuthTaskDialogVisible, clearAuthTaskCountdown,
-        clearTeamClientDialogVisible, clearTeamClientCountdown,
-        clearPrintTaskDialogVisible, clearPrintTaskCountdown,
-        autoPrintWindowVisible, currentPrintTask, printStatus,
-        authPollingEnabled,
-        fileInputRef, selectedFile, selectedFileName,
-        uploadConfirmDialogVisible, uploadConfirmCountdown, uploadProgressPercentage,
-        formatDateTime,
-        handleAuthPageChange, handlePrintPageChange, handleTeamsPageChange,
-        handleAcceptAuth, handleDenyAuth,
-        handleDownloadPdf, startAutoPrint, stopAutoPrint, handleManualPrint,
-        toggleAuthPolling,
-        triggerFileSelect, handleFileChange,
-        showUploadConfirmDialog, cancelUpload, confirmUpload,
+        // 弹窗
+        clearAuthTaskDialogVisible, clearAuthTaskCountdown, clearTeamClientDialogVisible, clearTeamClientCountdown, clearPrintTaskDialogVisible, clearPrintTaskCountdown,
+        uploadConfirmDialogVisible, uploadConfirmCountdown, uploadProgressPercentage, selectedFile, selectedFileName, fileInputRef,
+        // 函数
+        formatDateTime, getStatusTagType, getStatusText,
+        handleAuthPageChange, handlePrintPageChange, handleBalloonPageChange, handleTeamsPageChange,
+        handleAcceptAuth, handleDenyAuth, handleDownloadPdf, handleManualPrint, handleBalloonPrint,
+        startAutoPrint, stopAutoPrint, startAutoBalloon, stopAutoBalloon, toggleAuthSse,
+        triggerFileSelect, handleFileChange, cancelUpload, confirmUpload,
         showClearAuthTaskDialog, showClearTeamClientDialog, showClearPrintTaskDialog,
-        cancelClearAuthTask, confirmClearAuthTask,
-        cancelClearTeamClient, confirmClearTeamClient,
-        cancelClearPrintTask, confirmClearPrintTask,
-        getStatusTagType, getStatusText,
-        refreshAuthTasks, refreshPrintTasks, refreshTeams,
-        gotoDomjudge
+        cancelClearAuthTask, confirmClearAuthTask, cancelClearTeamClient, confirmClearTeamClient, cancelClearPrintTask, confirmClearPrintTask,
+        refreshAuthTasks, refreshPrintTasks, refreshBalloonTasks, refreshTeams,
+        gotoDomjudge, generateBalloonTxt, printBalloonTxt
       };
     }
   }).use(ElementPlus).mount('#app');

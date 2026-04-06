@@ -1,21 +1,14 @@
 package top.techmczs.cuitxcpcproxy.controller.admin;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import top.techmczs.cuitxcpcproxy.dto.AdminDTO;
 import top.techmczs.cuitxcpcproxy.dto.AuthTaskDTO;
-import top.techmczs.cuitxcpcproxy.dto.DjTeamDTO;
 import top.techmczs.cuitxcpcproxy.result.Result;
 import top.techmczs.cuitxcpcproxy.services.DjAuthService;
-
-import java.util.Arrays;
-import java.util.concurrent.Executor;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,33 +17,14 @@ public class DjAuthAdminController {
 
     private final DjAuthService djAuthService;
 
-    @Resource(name = "taskExecutor")
-    private Executor taskExecutor;
-
-//    @GetMapping("/task")
-//    public Result<AuthTaskDTO> getTeamLoginTask(){
-//        return Result.success(djAuthService.getAuthTopTaskFromQueue());
-//    }
-
-    @GetMapping(value = "/task", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    /**
+     * 授权任务SSE ✅ 修复：添加charset、移除线程池死循环
+     */
+    @GetMapping(value = "/task", produces = MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8")
     public SseEmitter getTeamLoginTaskSse() {
-        // 0L = 连接永不超时
         SseEmitter emitter = new SseEmitter(0L);
-
-        // 异步执行推送逻辑，不阻塞主线程
-        taskExecutor.execute(() -> djAuthService.pushAuthTaskBySse(emitter));
-
-        // 连接生命周期回调
-        emitter.onCompletion(() -> System.out.println("授权任务SSE连接正常关闭"));
-        emitter.onTimeout(() -> {
-            System.err.println("授权任务SSE连接超时");
-            emitter.complete();
-        });
-        emitter.onError(ex -> {
-            System.err.println("授权任务SSE连接异常：" + ex.getMessage());
-            emitter.completeWithError(ex);
-        });
-
+        // 注册客户端（统一管理生命周期）
+        djAuthService.registerAuthClient(emitter);
         return emitter;
     }
 
@@ -87,5 +61,4 @@ public class DjAuthAdminController {
     public Result<AdminDTO> toDomjudge() {
         return Result.success(djAuthService.getAdminToDomjudgeToken());
     }
-
 }

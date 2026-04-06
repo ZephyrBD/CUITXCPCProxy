@@ -23,7 +23,7 @@ public class GlobalExceptionHandler {
 
     // JWT 过期
     @ExceptionHandler(ExpiredJwtException.class)
-    public Result<Object> jwtExpireHandler(ExpiredJwtException ex) {
+    public Result<Object> jwtExpireHandler() {
         log.error("Token已过期");
         return Result.error("Token已过期，请重新审核");
     }
@@ -35,12 +35,12 @@ public class GlobalExceptionHandler {
         return Result.error("非法Token");
     }
 
-    // 兜底通用异常（防止服务崩溃）
-    @ExceptionHandler(Exception.class)
-    public Result<Object> globalExceptionHandler(Exception ex) {
-        log.error("系统未知异常",ex);
-        return Result.error("服务器异常，请联系管理员");
-    }
+//    // 兜底通用异常（防止服务崩溃）
+//    @ExceptionHandler(Exception.class)
+//    public Result<Object> globalExceptionHandler(Exception ex) {
+//        log.error("系统未知异常",ex);
+//        return Result.error("服务器异常，请联系管理员");
+//    }
 
     @ExceptionHandler(Exception.class)
     public Result<?> globalExceptionHandler(Exception e, HttpServletRequest request) throws Exception {
