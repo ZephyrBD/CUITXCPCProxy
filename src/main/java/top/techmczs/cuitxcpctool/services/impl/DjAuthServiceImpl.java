@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2018-2026 Modding Craft ZBD Studio.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 package top.techmczs.cuitxcpctool.services.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -9,8 +27,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import top.techmczs.cuitxcpctool.constant.MessageConstant;
 import top.techmczs.cuitxcpctool.common.QueueTaskStatus;
+import top.techmczs.cuitxcpctool.common.SqlQueue;
+import top.techmczs.cuitxcpctool.constant.MessageConstant;
 import top.techmczs.cuitxcpctool.constant.SseEventConstant;
 import top.techmczs.cuitxcpctool.dto.AdminDTO;
 import top.techmczs.cuitxcpctool.dto.AuthTaskDTO;
@@ -18,7 +37,10 @@ import top.techmczs.cuitxcpctool.dto.DjTeamDTO;
 import top.techmczs.cuitxcpctool.entity.AuthTask;
 import top.techmczs.cuitxcpctool.entity.DjTeam;
 import top.techmczs.cuitxcpctool.entity.TeamClient;
-import top.techmczs.cuitxcpctool.exception.*;
+import top.techmczs.cuitxcpctool.exception.AuthTaskNotExistException;
+import top.techmczs.cuitxcpctool.exception.IllegalClientException;
+import top.techmczs.cuitxcpctool.exception.IllegalTokenException;
+import top.techmczs.cuitxcpctool.exception.TeamNotExistException;
 import top.techmczs.cuitxcpctool.mapper.AuthTaskMapper;
 import top.techmczs.cuitxcpctool.mapper.DjTeamMapper;
 import top.techmczs.cuitxcpctool.mapper.TeamClientMapper;
@@ -28,7 +50,6 @@ import top.techmczs.cuitxcpctool.result.Result;
 import top.techmczs.cuitxcpctool.services.DjAuthService;
 import top.techmczs.cuitxcpctool.services.SseManagerService;
 import top.techmczs.cuitxcpctool.utils.JwtUtil;
-import top.techmczs.cuitxcpctool.common.SqlQueue;
 
 import java.time.LocalDateTime;
 import java.util.Collections;

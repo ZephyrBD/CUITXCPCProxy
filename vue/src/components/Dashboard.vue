@@ -1,3 +1,21 @@
+<!--
+  - Copyright (C) 2018-2026 Modding Craft ZBD Studio.
+  -
+  - This program is free software; you can redistribute it and/or modify
+  - it under the terms of the GNU General Public License as published by
+  - the Free Software Foundation; either version 2 of the License, or
+  - (at your option) any later version.
+  -
+  - This program is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU General Public License along
+  - with this program; if not, write to the Free Software Foundation, Inc.,
+  - 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+  -->
+
 <template>
   <div class="app-container">
     <div class="header-section">
@@ -89,12 +107,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { ElMessage, ElLoading, ElMessageBox } from 'element-plus'
+import {onMounted, onUnmounted, ref} from 'vue'
+import {ElLoading, ElMessage, ElMessageBox} from 'element-plus'
 import api from '@/api'
-import { formatDateTime } from '@/utils/date'
-import { printByIframe, printBalloonTxt } from '@/utils/print'
-import { getAppVersion, startNewContest } from '../api/utils'
+import {formatDateTime} from '@/utils/date'
+import {printBalloonTxt, printByIframe} from '@/utils/print'
+import {getAppVersion, startNewContest} from '@/api/utils'
 
 import AuthTab from './dashboard/tabs/AuthTab.vue'
 import PrintTab from './dashboard/tabs/PrintTab.vue'
@@ -188,7 +206,7 @@ const connectGlobalSse = () => {
       const task = res.data?.[0];
       if (task) { 
         currentAuthTask.value = task;
-        if(task.status!='AUTO_DONE'){
+        if(task.status!=='AUTO_DONE'){
           authTaskDialogVisible.value = true; 
         }
         fetchAuthTasks(); 
