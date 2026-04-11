@@ -19,6 +19,7 @@ public class CuitXcpcToolApplication implements ApplicationListener<ServletWebSe
     public static final String CXTOOL_VERSION = "Beta 0.3 | Preview";
 
     public static void main(String[] args) {
+        printTitle();
         SpringApplication.run(CuitXcpcToolApplication.class, args);
         printHelpInfo();
     }
@@ -28,6 +29,19 @@ public class CuitXcpcToolApplication implements ApplicationListener<ServletWebSe
         serverPort = event.getWebServer().getPort();
     }
 
+    public static void printTitle(){
+        System.out.println(
+                """
+                         ██████╗██╗   ██╗██╗████████╗    ██╗  ██╗ ██████╗██████╗  ██████╗    ████████╗ ██████╗  ██████╗ ██╗    \s
+                        ██╔════╝██║   ██║██║╚══██╔══╝    ╚██╗██╔╝██╔════╝██╔══██╗██╔════╝    ╚══██╔══╝██╔═══██╗██╔═══██╗██║    \s
+                        ██║     ██║   ██║██║   ██║        ╚███╔╝ ██║     ██████╔╝██║            ██║   ██║   ██║██║   ██║██║    \s
+                        ██║     ██║   ██║██║   ██║        ██╔██╗ ██║     ██╔═══╝ ██║            ██║   ██║   ██║██║   ██║██║    \s
+                        ╚██████╗╚██████╔╝██║   ██║       ██╔╝ ██╗╚██████╗██║     ╚██████╗       ██║   ╚██████╔╝╚██████╔╝███████╗
+                         ╚═════╝ ╚═════╝ ╚═╝   ╚═╝       ╚═╝  ╚═╝ ╚═════╝╚═╝      ╚═════╝       ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
+                        \s
+                         \t ::Spring Boot:: 4.0.5 Designed and Powered By ZephyrBD\s
+                        """);
+    }
     public static void printHelpInfo(){
         System.out.println("======================================");
         System.out.println("Verify Web: http://localhost:" + serverPort + "/cxtool/#/auth");

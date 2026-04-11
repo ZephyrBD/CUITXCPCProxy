@@ -67,4 +67,4 @@ out/
 .vscode/
 /pdf/
 /vue/package-lock.json
-/src/main/resources/static/
+/src/main/resources/static/**
