@@ -41,7 +41,7 @@ tasks.register('cleanPDFAndFronted', Delete) {
     delete "$rootProject.projectDir/pdf"
     delete "$rootProject.projectDir/src/main/resources/static"
 }
-clean.dependsOn('cleanPDF')
+clean.dependsOn('cleanPDFAndFronted')
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
