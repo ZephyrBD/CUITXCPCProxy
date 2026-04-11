@@ -7,6 +7,7 @@ import org.springframework.boot.web.server.servlet.context.ServletComponentScan;
 import org.springframework.boot.web.server.servlet.context.ServletWebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import top.techmczs.cuitxcpctool.utils.SettingsCheckUtil;
 
 @ServletComponentScan
 @SpringBootApplication
@@ -20,6 +21,7 @@ public class CuitXcpcToolApplication implements ApplicationListener<ServletWebSe
 
     public static void main(String[] args) {
         printTitle();
+        SettingsCheckUtil.init();
         SpringApplication.run(CuitXcpcToolApplication.class, args);
         printHelpInfo();
     }

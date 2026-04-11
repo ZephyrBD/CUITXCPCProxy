@@ -1,13 +1,11 @@
-package top.techmczs.cuitxcpctool.config;
+package top.techmczs.cuitxcpctool.utils;
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+
 import java.io.*;
 import java.util.Properties;
 
-@Configuration
-public class ConfigValidationConfig {
+public class SettingsCheckUtil {
 
     // ====================== 配置文件名称 ======================
     private static final String DB_CONFIG = "db-secret.properties";
@@ -18,13 +16,12 @@ public class ConfigValidationConfig {
     private static final String JUDGE_TEMPLATE = "settings.properties.sample";
 
     // 启动时校验所有配置
-    @PostConstruct
-    public void validateAllConfigs() {
+    public static void init() {
         validateDatabaseConfig();
         validateJudgeConfig();
     }
 
-    private void validateDatabaseConfig() {
+    private static void validateDatabaseConfig() {
         File file = new File(DB_CONFIG);
         if (!file.exists()) {
             copyTemplateToFile(DB_TEMPLATE, file);
@@ -47,7 +44,7 @@ public class ConfigValidationConfig {
         }
     }
 
-    private void validateJudgeConfig() {
+    private static void validateJudgeConfig() {
         File file = new File(JUDGE_CONFIG);
         if (!file.exists()) {
             copyTemplateToFile(JUDGE_TEMPLATE, file);
@@ -94,7 +91,7 @@ public class ConfigValidationConfig {
         }
     }
 
-    private void copyTemplateToFile(String templatePath, File targetFile) {
+    private static void copyTemplateToFile(String templatePath, File targetFile) {
         try (InputStream in = new ClassPathResource(templatePath).getInputStream();
              FileOutputStream out = new FileOutputStream(targetFile)) {
             in.transferTo(out);
@@ -103,7 +100,7 @@ public class ConfigValidationConfig {
         }
     }
 
-    private Properties loadProperties(File file) {
+    private static Properties loadProperties(File file) {
         Properties props = new Properties();
         try (FileInputStream fis = new FileInputStream(file)) {
             props.load(fis);
@@ -113,7 +110,7 @@ public class ConfigValidationConfig {
         return props;
     }
 
-    private void haltWithError(String... messages) {
+    private static void haltWithError(String... messages) {
         System.err.println("=====================================================");
         for (String msg : messages) {
             System.err.println(msg);
@@ -121,4 +118,5 @@ public class ConfigValidationConfig {
         System.err.println("=====================================================");
         System.exit(1);
     }
+
 }
