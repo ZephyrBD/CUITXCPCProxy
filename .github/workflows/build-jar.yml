@@ -6,6 +6,8 @@ on:
 
 jobs:
   build:
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     # 运行环境
     runs-on: ubuntu-latest
     steps:
