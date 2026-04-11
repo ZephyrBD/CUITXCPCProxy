@@ -68,3 +68,4 @@ out/
 /pdf/
 /vue/package-lock.json
 /src/main/resources/static/**
+/settings.properties

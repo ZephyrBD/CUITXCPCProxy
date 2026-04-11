@@ -20,7 +20,6 @@ repositories {
 
 tasks.register('cleanPDF', Delete) {
     group = "Cleanup"
-    description = "清理指定目录（如前端构建输出、自定义缓存等）"
     delete "$rootProject.projectDir/pdf"
 }
 clean.dependsOn('cleanPDF')

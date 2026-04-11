@@ -1,0 +1,19 @@
+server.port=8080
+# ====================== DOMjudge Config ======================
+org.domjudge.host=
+org.domjudge.route-path=
+org.domjudge.port=
+org.domjudge.contest-id=
+org.domjudge.account=
+org.domjudge.password=
+org.domjudge.print-token=
+
+# Special Verification
+org.domjudge.use-special-client=false
+org.domjudge.nginx-verify-route-path=
+org.domjudge.special-client-user-agent=
+
+# ====================== JWT Config ======================
+top.jwt.secret-key=
+top.jwt.ttl=60000
+top.jwt.admin-password=
