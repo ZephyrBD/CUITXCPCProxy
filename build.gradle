@@ -36,12 +36,17 @@ repositories {
     mavenCentral()
 }
 
-tasks.register('cleanPDFAndFronted', Delete) {
+tasks.register('cleanPDF', Delete) {
     group = "build"
     delete "$rootProject.projectDir/pdf"
+}
+
+tasks.register('cleanFronted',Delete){
+    group = "build"
     delete "$rootProject.projectDir/src/main/resources/static"
 }
-clean.dependsOn('cleanPDFAndFronted')
+
+clean.dependsOn('cleanPDF')
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
