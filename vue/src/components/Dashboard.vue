@@ -65,7 +65,6 @@
         </el-tab-pane>
 
         <el-tab-pane label="队伍信息" name="teams">
-          <!-- 🔥 核心修复：修改子组件事件为 file-upload -->
           <TeamsTab
             :teams-table-data="teamsTableData"
             :teams-current-page="teamsCurrentPage"
@@ -79,7 +78,6 @@
       </el-tabs>
     </div>
 
-    <!-- 隐藏的文件选择框（无需显示，仅备用） -->
     <input type="file" ref="fileInputRef" style="display: none;" accept=".xlsx">
 
     <AuthTaskDialog v-model="authTaskDialogVisible" :task="currentAuthTask" @accept="handleAcceptAuth" @deny="handleDenyAuth"/>
@@ -108,6 +106,7 @@ import UploadConfirmDialog from './dashboard/dialogs/UploadConfirmDialog.vue'
 import AutoPrintDialog from './dashboard/dialogs/AutoPrintDialog.vue'
 import AutoBalloonDialog from './dashboard/dialogs/AutoBalloonDialog.vue'
 import axios from 'axios'
+import router from "@/router";
 
 const activeTab = ref('auth');
 const globalSSE = ref(null);
@@ -291,26 +290,28 @@ const gotoDomjudge = async () => {
 const handleLogout = async () => {
   try {
     await ElMessageBox.confirm(
-      '确定要退出登录吗？',
-      '提示',
-      {
-        confirmButtonText: '确定登出',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+        '确定要退出登录吗？',
+        '提示',
+        {
+          confirmButtonText: '确定登出',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
     )
 
-    await axios.get('/admin/logout') 
-    localStorage.removeItem('token')
     if (globalSSE.value) globalSSE.value.close()
+    localStorage.removeItem('token')
+
+    await axios.get('/cxtool/admin/logout')
+
     ElMessage.success('登出成功')
-    window.location.href = '/cxtool/login'
+    await router.push('/login')
+
   } catch (error) {
     ElMessage.info('已取消登出')
   }
 }
 
-// 🔥 核心修复：接收子组件上传的文件，处理上传逻辑
 const handleFileUpload = (file) => {
   if (!file.name.endsWith('.xlsx')) {
     ElMessage.error('仅支持 .xlsx 格式文件！');

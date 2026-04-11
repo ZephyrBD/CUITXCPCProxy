@@ -18,9 +18,10 @@ repositories {
     mavenCentral()
 }
 
-tasks.register('cleanPDF', Delete) {
-    group = "Cleanup"
+tasks.register('cleanPDFAndFronted', Delete) {
+    group = "build"
     delete "$rootProject.projectDir/pdf"
+    delete "$rootProject.projectDir/src/main/resources/static"
 }
 clean.dependsOn('cleanPDF')
 

@@ -39,11 +39,11 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(Exception.class)
-    public Result<?> globalExceptionHandler(Exception e, HttpServletRequest request) throws Exception {
+    public Result<?> globalExceptionHandler(Exception e, HttpServletRequest request) {
         // 如果是SSE请求，直接抛出，不返回JSON
         String contentType = request.getContentType();
         if (contentType != null && contentType.equals(MediaType.TEXT_EVENT_STREAM_VALUE)) {
-            throw e;
+            return null;
         }
         log.error(MessageConstant.SYSTEM_ERROR, e.getMessage());
         return Result.error(ResponseMessageConstant.ERROR);
