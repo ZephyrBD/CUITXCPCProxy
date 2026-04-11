@@ -5,6 +5,10 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
+cuit_xcpc.mv.db
+cuit_xcpc.trace.db
+db-secret.properties
+
 ### STS ###
 .apt_generated
 .classpath
@@ -16,6 +20,32 @@ build/
 bin/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
+
+
+### VUE ###
+.DS_Store
+node_modules
+/dist
+
+
+# local env files
+/vue/.env.local
+/vue/.env.*.local
+
+# Log files
+/vue/npm-debug.log*
+/vue/yarn-debug.log*
+/vue/yarn-error.log*
+/vue/pnpm-debug.log*
+
+# Editor directories and files
+/vue/.idea
+/vue/.vscode
+/vue/*.suo
+/vue/*.ntvs*
+/vue/*.njsproj
+/vue/*.sln
+/vue/*.sw?
 
 ### IntelliJ IDEA ###
 .idea
@@ -35,3 +65,6 @@ out/
 
 ### VS Code ###
 .vscode/
+/pdf/
+/vue/package-lock.json
+/src/main/resources/static/

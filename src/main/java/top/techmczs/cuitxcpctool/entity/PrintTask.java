@@ -1,0 +1,22 @@
+package top.techmczs.cuitxcpctool.entity;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+import top.techmczs.cuitxcpctool.dto.PrintTeamDTO;
+import top.techmczs.cuitxcpctool.common.QueueTask;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+@Accessors(chain = true)
+public class PrintTask extends QueueTask {
+    public PrintTask() {}
+    public PrintTask(PrintTeamDTO printTeamDTO, String fileName, String filePath) {
+        this.examNum = printTeamDTO.getExamNum();
+        this.fileName = fileName;
+        this.filePath = filePath;
+    }
+    private String examNum;
+    private String filePath;
+    private String fileName;
+}
