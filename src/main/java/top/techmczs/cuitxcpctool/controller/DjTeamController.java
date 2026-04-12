@@ -19,6 +19,9 @@
 package top.techmczs.cuitxcpctool.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -35,12 +38,14 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/admin")
+@Tag(name = "Team", description = "用于获取队伍信息的接口")
 public class DjTeamController {
 
     private final DjTeamService djTeamService;
 
     @GetMapping("/team/page")
-    public Result<IPage<DjTeam>> getAllTeamsByPage(@RequestParam(value = "cur_page") int curPage){
+    @Operation(description = "分页查询所有队伍")
+    public Result<IPage<DjTeam>> getAllTeamsByPage(@Parameter(description = "当前查询的页码") @RequestParam(value = "cur_page") int curPage){
         return Result.success(djTeamService.queryTeamsByPage(curPage));
     }
 
@@ -50,7 +55,8 @@ public class DjTeamController {
      * @return 导入状态
      */
     @PostMapping("/team")
-    public Result<String> uploadTeam(@RequestPart MultipartFile file){
+    @Operation(description = "上传XLSX解析成队伍")
+    public Result<String> uploadTeam(@Parameter(description = "xlsx文件") @RequestPart MultipartFile file){
         try {
             if(!Objects.requireNonNull(file.getOriginalFilename()).endsWith(".xlsx")){
                 return Result.error(MessageConstant.MUST_XLSX);

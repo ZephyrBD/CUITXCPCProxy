@@ -40,6 +40,11 @@ public class LoginInterceptor implements HandlerInterceptor {
     private static final String PRINT_TASK_URI = "/cxtool/admin/print/task";
     private static final String PUBLIC_URI = "/cxtool/public";
 
+    private static final String SWAGGER_UI_URI = "/cxtool/swagger-ui";
+    private static final String API_DOCS_URI = "/cxtool/v3/api-docs";
+    private static final String WEBJARS_URI = "/cxtool/webjars";
+    private static final String SWAGGER_RESOURCES = "/cxtool/swagger-resources";
+
     // 注入你的配置
     private final DomjudgeProperties domjudgeProperties;
     private final JwtProperties jwtProperties;
@@ -75,6 +80,14 @@ public class LoginInterceptor implements HandlerInterceptor {
         if(requestUri.startsWith(PUBLIC_URI)){
             return true;
         }
+
+        if (requestUri.startsWith(SWAGGER_UI_URI) ||
+                requestUri.startsWith(API_DOCS_URI) ||
+                requestUri.startsWith(WEBJARS_URI) ||
+                requestUri.startsWith(SWAGGER_RESOURCES)) {
+            return true;
+        }
+
         // 特殊接口：打印任务(POST)，校验固定Token
         if (PRINT_TASK_URI.equals(requestUri) && HttpMethod.POST.matches(method)) {
             String token = request.getHeader("token");

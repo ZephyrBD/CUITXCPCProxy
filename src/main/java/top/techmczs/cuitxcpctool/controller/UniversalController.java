@@ -18,6 +18,10 @@
 
 package top.techmczs.cuitxcpctool.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -39,6 +43,7 @@ import top.techmczs.cuitxcpctool.utils.JwtUtil;
 
 @RestController
 @RequiredArgsConstructor
+@Tag(name = "Universal",description = "通用接口")
 public class UniversalController {
 
     private final JwtProperties jwtProperties;
@@ -47,11 +52,17 @@ public class UniversalController {
     private final DjAuthService djAuthService;
 
     @GetMapping("/public/version")
+    @Operation(description = "获取版本号")
     public String version() {
         return CuitXcpcToolApplication.CXTOOL_VERSION;
     }
 
     @GetMapping("/admin/login")
+    @Operation(description = "Admin请求登录")
+    @Parameters({
+            @Parameter(name = "userName",description = "用户名"),
+            @Parameter(name = "password",description = "密码")
+    })
     public Result<String> login(String userName, String password) {
         if (JwtProperties.ADMIN_ACCOUNT.equals(userName) && jwtProperties.getAdminPassword().equals(password)) {
             // 登录成功
@@ -62,6 +73,7 @@ public class UniversalController {
     }
 
     @DeleteMapping("/admin/new/contest")
+    @Operation(description = "请求清空除队伍外的所有信息，开始新比赛")
     public Result<String> deleteAll() {
         djPrintService.clearAll();
         djAuthService.clearAuthTaskQueue();
@@ -70,6 +82,7 @@ public class UniversalController {
     }
 
     @GetMapping("/admin/logout")
+    @Operation(description = "请求登出")
     public Result<String> logout() {
         return Result.success();
     }
@@ -78,7 +91,8 @@ public class UniversalController {
      * SSE连接入口
      */
     @GetMapping(value = "/admin/sse/connect", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter connect(@RequestParam String token) {
+    @Operation(description = "SSE 统一任务队列")
+    public SseEmitter connect(@Parameter(description = "身份token") @RequestParam String token) {
         String userName;
         try {
             // 解析 Token

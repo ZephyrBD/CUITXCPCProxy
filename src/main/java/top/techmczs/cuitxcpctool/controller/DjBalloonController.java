@@ -19,6 +19,9 @@
 package top.techmczs.cuitxcpctool.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -31,17 +34,20 @@ import top.techmczs.cuitxcpctool.services.DjBalloonService;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/admin/balloon")
+@Tag(name = "Balloon",description = "返回包装后的Domjudge气球信息")
 public class DjBalloonController {
 
     private final DjBalloonService djBalloonService;
 
     @GetMapping("/task/page")
-    public Result<IPage<Balloon>> getAllPrintTask(@RequestParam(value = "cur_page") int curPage){
+    @Operation(description = "分页查询所有气球小票任务")
+    public Result<IPage<Balloon>> getAllPrintTask(@Parameter(description = "当前查询的页码") @RequestParam(value = "cur_page") int curPage){
         return Result.success(djBalloonService.getAllBalloonFromDomjudge(curPage));
     }
 
     @PostMapping("/task/{id}/done")
-    public Result<String> doneBalloon(@PathVariable Long id) {
+    @Operation(description = "标记某个气球已经发放")
+    public Result<String> doneBalloon(@Parameter(description = "气球任务ID") @PathVariable Long id) {
         djBalloonService.setBalloonDone(id);
         return Result.success(ResponseMessageConstant.SUCCESS);
     }

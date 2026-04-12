@@ -35,7 +35,8 @@ public class CuitXcpcToolApplication implements ApplicationListener<ServletWebSe
 
     private static int serverPort;
 
-    public static final String CXTOOL_VERSION = "Beta 0.3 | Preview";
+    // UTODO 需要完善Swagger
+    public static final String CXTOOL_VERSION = "0.4-Preview";
 
     public static void main(String[] args) {
         printTitle();
@@ -51,21 +52,22 @@ public class CuitXcpcToolApplication implements ApplicationListener<ServletWebSe
 
     public static void printTitle(){
         System.out.println(
-                """
-                         ██████╗██╗   ██╗██╗████████╗    ██╗  ██╗ ██████╗██████╗  ██████╗    ████████╗ ██████╗  ██████╗ ██╗    \s
-                        ██╔════╝██║   ██║██║╚══██╔══╝    ╚██╗██╔╝██╔════╝██╔══██╗██╔════╝    ╚══██╔══╝██╔═══██╗██╔═══██╗██║    \s
-                        ██║     ██║   ██║██║   ██║        ╚███╔╝ ██║     ██████╔╝██║            ██║   ██║   ██║██║   ██║██║    \s
-                        ██║     ██║   ██║██║   ██║        ██╔██╗ ██║     ██╔═══╝ ██║            ██║   ██║   ██║██║   ██║██║    \s
-                        ╚██████╗╚██████╔╝██║   ██║       ██╔╝ ██╗╚██████╗██║     ╚██████╗       ██║   ╚██████╔╝╚██████╔╝███████╗
-                         ╚═════╝ ╚═════╝ ╚═╝   ╚═╝       ╚═╝  ╚═╝ ╚═════╝╚═╝      ╚═════╝       ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝
-                        \s
-                         \t ::Spring Boot:: 4.0.5 Designed and Powered By ZephyrBD\s
-                        """);
+                " ██████╗██╗   ██╗██╗████████╗    ██╗  ██╗ ██████╗██████╗  ██████╗    ████████╗ ██████╗  ██████╗ ██╗     \n" +
+                "██╔════╝██║   ██║██║╚══██╔══╝    ╚██╗██╔╝██╔════╝██╔══██╗██╔════╝    ╚══██╔══╝██╔═══██╗██╔═══██╗██║     \n" +
+                "██║     ██║   ██║██║   ██║        ╚███╔╝ ██║     ██████╔╝██║            ██║   ██║   ██║██║   ██║██║     \n" +
+                "██║     ██║   ██║██║   ██║        ██╔██╗ ██║     ██╔═══╝ ██║            ██║   ██║   ██║██║   ██║██║     \n" +
+                "╚██████╗╚██████╔╝██║   ██║       ██╔╝ ██╗╚██████╗██║     ╚██████╗       ██║   ╚██████╔╝╚██████╔╝███████╗\n" +
+                " ╚═════╝ ╚═════╝ ╚═╝   ╚═╝       ╚═╝  ╚═╝ ╚═════╝╚═╝      ╚═════╝       ╚═╝    ╚═════╝  ╚═════╝ ╚══════╝\n" +
+                "\n" +
+                " \t "+"Ver:" + CXTOOL_VERSION + " █ Based Spring Boot:4.0.5 █ Designed and Powered By ZephyrBD\n");
     }
+
     public static void printHelpInfo(){
         System.out.println("======================================");
         System.out.println("Verify Web: http://localhost:" + serverPort + "/cxtool/#/auth");
         System.out.println("Admin Web: http://localhost:" + serverPort + "/cxtool/#/login");
+        System.out.println("If you open API Documentation, please use next url to visit.");
+        System.out.println("http://localhost:" + serverPort + "/cxtool/swagger-ui/index.html#/");
         System.out.println("======================================");
     }
 }

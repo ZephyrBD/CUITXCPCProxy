@@ -1,19 +1,51 @@
+# server port
 server.port=8080
-# ====================== DOMjudge Config ======================
+# ==============================================
+# Domjudge Core Configuration
+# Basic connection parameters for Domjudge API
+# ==============================================
+# Domjudge server host address (with protocol http/https)
 org.domjudge.host=
+# Request routing path prefix for Domjudge
 org.domjudge.route-path=
+# Domjudge server port number
 org.domjudge.port=
+# Domjudge contest unique identifier
 org.domjudge.contest-id=
+# Domjudge admin account username
 org.domjudge.account=
+# Domjudge admin account password
 org.domjudge.password=
+# Token for print task interface authentication
 org.domjudge.print-token=
 
-# Special Verification
+# ==============================================
+# Domjudge Special Verification Configuration
+# Custom client verification rules for Nginx/Domjudge
+# ==============================================
+# Enable special client verification switch (true/false)
 org.domjudge.use-special-client=false
+# Routing path for Nginx verification interface
 org.domjudge.nginx-verify-route-path=
-org.domjudge.special-client-user-agent=
+# Custom User-Agent for special client identification
+org.domjudge.special-client-user-agent=OMSClient
 
-# ====================== JWT Config ======================
+# ==============================================
+# JWT Authentication Configuration
+# Token settings for user login and interface verification
+# ==============================================
+# Secret key for JWT token signing (must be secure and complex)
 top.jwt.secret-key=
+# JWT token expiration time (ms), short TTL for browser User-Agent verification
 top.jwt.ttl=60000
+# Admin password for dashboard authentication
 top.jwt.admin-password=
+
+# ==============================================
+# Swagger / SpringDoc Configuration
+# API documentation switch (DISABLED for production)
+# ==============================================
+# Disable OpenAPI docs generation
+springdoc.api-docs.enabled=false
+# Disable Swagger UI page
+springdoc.swagger-ui.enabled=false

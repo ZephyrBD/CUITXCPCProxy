@@ -23,7 +23,7 @@ plugins {
 }
 
 group = 'top.techmczs'
-version = 'Beta_0.3-Preview'
+version = '0.4-Preview'
 description = 'CUITXCPCTool'
 
 java {
