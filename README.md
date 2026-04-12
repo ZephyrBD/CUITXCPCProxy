@@ -30,9 +30,8 @@ java -jar CUITXCPCTool-XXX.jar
 
 - 为了确保稳定使用，推荐给`Domjudge`设置`BaseURL`。
   
-  > [!NOTE]
-  > 
-  > nginx的配置在`script`下有示例。
+> [!NOTE]
+> nginx的配置在`script`下有示例。
 
 - `org.domjudge.print-token`用于`Domjudge`发送打印任务时校验。
 
@@ -68,7 +67,7 @@ public String getVerifyUrl(){
 
 方法如下：
 
-> [!WARN]
+> [!NOTE]
 > 
 > 开启自动打印前，请打印测试页，确保打印机可以正常工作，并检查测试页内容和格式
 
